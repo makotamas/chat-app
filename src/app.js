@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 import './scss/style.scss';
 import config from './db_config.js';
 import { initializeApp } from 'firebase/app';
@@ -30,6 +33,7 @@ function createMessage() {
   const message = document.querySelector('#message').value;
   const username = document.querySelector('#nickname').value;
   const date = Timestamp.now();
+  // const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
   return { message, username, date };
 }
 
@@ -42,6 +46,8 @@ async function displayAllMessages() {
   document.querySelector('#messages').innerHTML = '';
   messages.forEach((doc) => {
     displayMessage(doc.data());
+    displayEditMessage(doc.data());
+    modifyMessage(userId);
   });
 }
 
@@ -69,6 +75,43 @@ function displayMessage(message) {
     scrollMode: 'if-needed',
     block: 'end'
   });
+}
+
+function displayEditMessage(id) {
+  const editPopupHTML = /*html*/ `
+    <div class="popup-container" id="popup">
+      <div class="edit-message" id="edit-message" data-id="${id}">
+        <div id="close-popup" class="button">
+          Close <i class="fa fa-window-close" aria-hidden="true"></i>
+        </div>
+        <textarea id="edit" name="" cols="30" rows="10">${document
+          .querySelector(`.message[data-id="${id}"] .message-text`)
+          .textContent.trim()}</textarea>
+        <div id="save-message" class="button">
+          Save message<i class="fas fa-save"></i>
+        </div>
+      </div>
+    </div>
+`;
+document.querySelector('#edit-message #close-popup').addEventListener('click', function() {
+  document.querySelector('#popup').remove();
+});
+
+document.querySelector('#edit-message #save-message').addEventListener('click', function() {
+  const newMessage = document.querySelector('#edit').value;
+  document.querySelector(`.message[data-id="${id}"] .message-text`).textContent = newMessage;
+});
+const userId = document.querySelector('#edit-message').dataset.id;
+
+document.querySelector('#messages').insertAdjacentHTML('beforeend', editPopupHTML);
+}
+
+async function modifyMessage(id, newMessage) {
+  try {
+    await updateDoc(id, { message: newMessage });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function handleSubmit() {
