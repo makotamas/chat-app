@@ -32,8 +32,7 @@ async function sendMessage(message) {
 function createMessage() {
   const message = document.querySelector('#message').value;
   const username = document.querySelector('#nickname').value;
-  const date = Timestamp.now();
-  // const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
+  const date = firebase.firestore.Timestamp.fromDate(new Date());
   return { message, username, date };
 }
 
@@ -52,12 +51,13 @@ async function displayAllMessages() {
 }
 
 function displayMessage(message) {
+  const date = message.date.toDate().toLocaleString('hu-HU');
   const messageHTML = /*html*/ `
     <div class="message">
       <i class="fas fa-user"></i>
       <div>
         <span class="username">${message.username}
-          <time>20:12 PM</time>
+          <time>${date}</time>
         </span>
         <br>
         <span class="message-text">
