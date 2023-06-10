@@ -11,7 +11,8 @@ import {
   getDocs,
   onSnapshot,
   doc,
-  deleteDoc
+  deleteDoc,
+  updateDoc
 } from 'firebase/firestore';
 import scrollIntoView from 'scroll-into-view-if-needed';
 
@@ -76,6 +77,48 @@ function displayMessage(message, messageId) {
 
   const trashBin = document.querySelector(`[data-id="${messageId}"] .fa-trash-alt`);
   trashBin.addEventListener('click', () => deleteMessage(messageId));
+
+  const editPen = document.querySelector(`[data-id="${messageId}"] .fa-pen`);
+  editPen.addEventListener('click', () => displayEditMessage(messageId));
+}
+
+function displayEditMessage(id) {
+  const editPopupHTML = /*html*/ `
+    <div class="popup-container" id="popup">
+      <div class="edit-message" id="edit-message" data-id="${id}">
+        <div id="close-popup" class="button">
+          Close <i class="fa fa-window-close" aria-hidden="true"></i>
+        </div>
+        <textarea id="edit" name="" cols="30" rows="10">${document
+          .querySelector(`.message[data-id="${id}"] .message-text`)
+          .textContent.trim()}</textarea>
+        <div id="save-message" class="button">
+          Save message<i class="fas fa-save"></i>
+        </div>
+      </div>
+    </div>
+`;
+  document.querySelector('#messages').insertAdjacentHTML('beforeend', editPopupHTML);
+
+  document
+    .querySelector(`[data-id="${id}"] .fa-window-close`)
+    .addEventListener('click', () => {
+      document.querySelector('#popup').remove();
+    });
+
+  document.querySelector(`[data-id="${id}"] .fa-save`).addEventListener('click', () => {
+    const newMessage = document.getElementById('edit').value;
+    document.querySelector(`.message[data-id="${id}"] .message-text`).textContent =
+      newMessage;
+    modifyMessage(newMessage, id);
+    document.querySelector('#popup').remove();
+  });
+}
+async function modifyMessage(newMessage, id) {
+  const docRef = doc(db, 'messages', id);
+  await updateDoc(docRef, {
+    message: newMessage
+  });
 }
 
 async function deleteMessage(id) {
