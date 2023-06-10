@@ -46,12 +46,14 @@ async function displayAllMessages() {
 }
 
 function displayMessage(message) {
+  const messageDate = message.date.toDate();
+  const dateText = messageDate.toLocaleString('hu-HU');
   const messageHTML = /*html*/ `
     <div class="message">
       <i class="fas fa-user"></i>
       <div>
         <span class="username">${message.username}
-          <time>20:12 PM</time>
+          <time>${dateText}</time>
         </span>
         <br>
         <span class="message-text">
