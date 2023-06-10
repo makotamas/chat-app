@@ -9,7 +9,9 @@ import {
   query,
   orderBy,
   getDocs,
-  onSnapshot
+  onSnapshot,
+  doc,
+  deleteDoc
 } from 'firebase/firestore';
 import scrollIntoView from 'scroll-into-view-if-needed';
 
@@ -41,15 +43,15 @@ async function displayAllMessages() {
   const messages = await getDocs(q);
   document.querySelector('#messages').innerHTML = '';
   messages.forEach((doc) => {
-    displayMessage(doc.data());
+    displayMessage(doc.data(), doc.id);
   });
 }
 
-function displayMessage(message) {
+function displayMessage(message, messageId) {
   const messageDate = message.date.toDate();
   const dateText = messageDate.toLocaleString('hu-HU');
   const messageHTML = /*html*/ `
-    <div class="message">
+    <div class="message" data-id= ${messageId}>
       <i class="fas fa-user"></i>
       <div>
         <span class="username">${message.username}
@@ -71,6 +73,21 @@ function displayMessage(message) {
     scrollMode: 'if-needed',
     block: 'end'
   });
+
+  const trashBin = document.querySelector(`[data-id="${messageId}"] .fa-trash-alt`);
+  trashBin.addEventListener('click', () => deleteMessage(messageId));
+}
+
+async function deleteMessage(id) {
+  const docRef = doc(db, 'messages', id);
+  console.log('Document deleted with ID: ', docRef.id);
+  await deleteDoc(docRef);
+}
+
+function removeMessage(messageId) {
+  const element = document.querySelector(`[data-id="${messageId}"]`);
+  //console.log(element);
+  element.remove();
 }
 
 function handleSubmit() {
@@ -103,13 +120,14 @@ onSnapshot(q, (snapshot) => {
     if (change.type === 'added') {
       console.log('added');
       if (!initialLoad) {
-        displayMessage(change.doc.data());
+        displayMessage(change.doc.data(), change.doc.id);
       }
     }
     if (change.type === 'modified') {
       console.log('Modified');
     }
     if (change.type === 'removed') {
+      removeMessage(change.doc.id);
       console.log('Removed');
     }
   });
